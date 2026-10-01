@@ -149,7 +149,7 @@ Window = Library:CreateWindow({
 	TabPadding = 8,
 	MenuFadeTime = 0.2
 })
-Library:SetWatermarkVisibility(true)
+Library:SetWatermarkVisibility(false)
 
 MainTab = Window:AddTab('Main')
 CombatTab = Window:AddTab('Combat')
