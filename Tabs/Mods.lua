@@ -65,16 +65,7 @@ local function ApplyWeaponMod()
 end
 
 WeaponGroup:AddButton({
-	Text = 'Apply Weapon Mods',
-	Func = function()
-		xpcall(ApplyWeaponMod, function(err)
-			Library:Notify('Error: ' .. tostring(err), 3)
-		end)
-	end
-})
-
-WeaponGroup:AddButton({
-	Text = 'Get weapon stats',
+	Text = 'test123',
 	Func = function()
 		xpcall(ApplyWeaponMod, function(err)
 			Library:Notify('Error: ' .. tostring(err), 3)
