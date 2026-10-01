@@ -21,6 +21,8 @@ for i, v in pairs(getgc(true)) do
 	end
 end
 
+print("new version")
+
 -- Services (Global cuz yes)
 Players = game:GetService("Players")
 RunService = game:GetService("RunService")
