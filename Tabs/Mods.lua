@@ -484,5 +484,5 @@ SniperGroup:AddToggle('RemoveAimSwayToggle', {
 		end)
 	end
 })
-
+print("new version")
 return true
