@@ -24,6 +24,33 @@ local function GetOriginalSettings(tool)
 	return {}
 end
 
+local function ApplySingleMod(key, optionName)
+	local character = LocalPlayer.Character
+	if not character then return Library:Notify("Character not found", 3) end
+
+	local tool = character:FindFirstChildOfClass("Tool")
+	if not tool then return Library:Notify("You need to hold a tool", 3) end
+
+	local settingsModule = tool:FindFirstChild('Settings')
+	if not settingsModule or not settingsModule:IsA('ModuleScript') then return Library:Notify("Tool has no Settings module", 3) end
+
+	local success, mod = pcall(require, settingsModule)
+	if not success or type(mod) ~= 'table' then return Library:Notify("Failed to require Settings module", 3) end
+
+	-- Ensure originals are cached before modifying
+	GetOriginalSettings(tool)
+
+	local val = Options[optionName].Value
+	mod[key] = val
+	
+	-- Special case for weapons that use two reload speeds
+	if key == "ReloadSpeed" and mod["ReloadSpeed2"] ~= nil then
+		mod["ReloadSpeed2"] = val
+	end
+
+	Library:Notify("Applied " .. key .. ": " .. tostring(val), 3)
+end
+
 local function ApplyWeaponMod()
 	local character = LocalPlayer.Character
 	if not character then error("Character not found") end
@@ -61,11 +88,44 @@ local function ApplyWeaponMod()
 		end
 	end
 
-	Library:Notify('Applied modifications to equipped weapon!', 3)
+	Library:Notify('Applied all modifications to equipped weapon!', 3)
 end
 
+-- UI Component Setup for Labels so we can update them dynamically
+local ReloadLabel, FireRateLabel, RecoilLabel, RecoilXLabel, AimSpeedLabel, CooldownLabel, GuardTimeLabel
+
 WeaponGroup:AddButton({
-	Text = 'Apply Weapon Mods',
+	Text = 'Fetch & Sync Gun Stats',
+	Func = function()
+		local character = LocalPlayer.Character
+		if not character then return Library:Notify("Character not found", 3) end
+
+		local tool = character:FindFirstChildOfClass("Tool")
+		if not tool then return Library:Notify("You need to hold a tool", 3) end
+
+		local settingsModule = tool:FindFirstChild('Settings')
+		if not settingsModule or not settingsModule:IsA('ModuleScript') then return Library:Notify("Tool has no Settings module", 3) end
+
+		local success, mod = pcall(require, settingsModule)
+		if not success or type(mod) ~= 'table' then return Library:Notify("Failed to require Settings module", 3) end
+
+		local old = GetOriginalSettings(tool)
+
+		-- Snap sliders to the gun's default values
+		if old.ReloadSpeed then Options.ModReloadSpeed:SetValue(old.ReloadSpeed) ReloadLabel:SetText('Default Reload: ' .. tostring(old.ReloadSpeed)) end
+		if old.waittime then Options.ModFireRate:SetValue(old.waittime) FireRateLabel:SetText('Default Fire Rate: ' .. tostring(old.waittime)) end
+		if old.GunRecoil then Options.ModRecoil:SetValue(old.GunRecoil) RecoilLabel:SetText('Default Recoil Y: ' .. tostring(old.GunRecoil)) end
+		if old.GunRecoilX then Options.ModRecoilX:SetValue(old.GunRecoilX) RecoilXLabel:SetText('Default Recoil X: ' .. tostring(old.GunRecoilX)) end
+		if old.AimSpeed then Options.ModAimSpeed:SetValue(old.AimSpeed) AimSpeedLabel:SetText('Default Aim Speed: ' .. tostring(old.AimSpeed)) end
+		if old.cooldown then Options.ModCooldown:SetValue(old.cooldown) CooldownLabel:SetText('Default Cooldown: ' .. tostring(old.cooldown)) end
+		if old.guardTime then Options.ModGuardTime:SetValue(old.guardTime) GuardTimeLabel:SetText('Default Guard Time: ' .. tostring(old.guardTime)) end
+
+		Library:Notify('Synced sliders with ' .. tool.Name .. ' defaults!', 3)
+	end
+})
+
+WeaponGroup:AddButton({
+	Text = 'Apply All Mods',
 	Func = function()
 		xpcall(ApplyWeaponMod, function(err)
 			Library:Notify('Error: ' .. tostring(err), 3)
@@ -77,27 +137,83 @@ WeaponGroup:AddDivider()
 
 WeaponGroup:AddToggle('ModBoltAction', {
 	Text = 'Disable Bolt Action',
-	Default = false
+	Default = false,
+	Callback = function(Value)
+		-- Optional: Automatically apply toggle changes if desired
+		local char = LocalPlayer.Character
+		if char and char:FindFirstChildOfClass("Tool") then
+			local t = char:FindFirstChildOfClass("Tool")
+			local s = t:FindFirstChild("Settings")
+			if s and s:IsA("ModuleScript") then
+				local m = require(s)
+				if m and type(m) == 'table' then m.BoltAction = not Value end
+			end
+		end
+	end
 })
 
 WeaponGroup:AddToggle('MakeGunAutoAction', {
-	Text = 'MakeGunAuto',
-	Default = false
+	Text = 'Make Gun Auto',
+	Default = false,
+	Callback = function(Value)
+		local char = LocalPlayer.Character
+		if char and char:FindFirstChildOfClass("Tool") then
+			local t = char:FindFirstChildOfClass("Tool")
+			local s = t:FindFirstChild("Settings")
+			if s and s:IsA("ModuleScript") then
+				local m = require(s)
+				if m and type(m) == 'table' then m.auto = Value end
+			end
+		end
+	end
 })
 
 WeaponGroup:AddDivider()
 
+ReloadLabel = WeaponGroup:AddLabel('Default Reload: N/A')
 WeaponGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 3.0, Rounding = 2 })
-WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3 })
-WeaponGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
-WeaponGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
-WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Reload Speed', Func = function() ApplySingleMod('ReloadSpeed', 'ModReloadSpeed') end })
 
 WeaponGroup:AddDivider()
 
+FireRateLabel = WeaponGroup:AddLabel('Default Fire Rate: N/A')
+WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3 })
+WeaponGroup:AddButton({ Text = 'Apply Fire Rate', Func = function() ApplySingleMod('waittime', 'ModFireRate') end })
+
+WeaponGroup:AddDivider()
+
+RecoilLabel = WeaponGroup:AddLabel('Default Recoil Y: N/A')
+WeaponGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Vertical Recoil', Func = function() ApplySingleMod('GunRecoil', 'ModRecoil') end })
+
+WeaponGroup:AddDivider()
+
+RecoilXLabel = WeaponGroup:AddLabel('Default Recoil X: N/A')
+WeaponGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Horizontal Recoil', Func = function() ApplySingleMod('GunRecoilX', 'ModRecoilX') end })
+
+WeaponGroup:AddDivider()
+
+AimSpeedLabel = WeaponGroup:AddLabel('Default Aim Speed: N/A')
+WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Aim Speed', Func = function() ApplySingleMod('AimSpeed', 'ModAimSpeed') end })
+
+WeaponGroup:AddDivider()
+
+CooldownLabel = WeaponGroup:AddLabel('Default Cooldown: N/A')
 WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Cooldown', Func = function() ApplySingleMod('cooldown', 'ModCooldown') end })
+
+WeaponGroup:AddDivider()
+
+GuardTimeLabel = WeaponGroup:AddLabel('Default Guard Time: N/A')
 WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
-WeaponGroup:AddSlider('ModRange', { Text = 'Range Multiplier', Default = 1.0, Min = 0.5, Max = 5.0, Rounding = 1 })
+WeaponGroup:AddButton({ Text = 'Apply Guard Time', Func = function() ApplySingleMod('guardTime', 'ModGuardTime') end })
+
+-- -------------------------------------------------------------
+-- The rest of your script (SoundModGroup, LaptopMainGroup, etc) 
+-- remains exactly the same below this line:
+-- -------------------------------------------------------------
 
 SoundModGroup:AddInput('SoundIdInput', {
 	Default = 'rbxassetid://0',
@@ -284,7 +400,6 @@ local function toggleAimSwayRemoval(enabled)
 								item.Value = 0
 							end
 						end)
-						-- Optional tracking tag if needed, or rely on toggle state cleanup
 					end
 				end
 			end
