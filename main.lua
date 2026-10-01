@@ -16,7 +16,7 @@ if not isfolder("SkidWare") then
 	makefolder("SkidWare")
 end
 
-BaseURL = "https://raw.githubusercontent.com/noristt/town/refs/heads/main/"
+BaseURL = "https://raw.githubusercontent.com/anonymoustwanger/forktown/refs/heads/main/"
 const Url = BaseURL .. "Core.lua"
 const Path = "SkidWare/Core.lua"
 local Code = ""
