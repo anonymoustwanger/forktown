@@ -3,12 +3,16 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 print("Loaded updated layout script")
 
--- UI Layout Initialization (Using Tabboxes to prevent vertical overflow)
-local WeaponTabbox = ModsTab:AddLeftTabbox('Weapons')
-local WeaponGroup = WeaponTabbox:AddTab('Weapon Mods')
+-- -------------------------------------------------------------
+-- UI Layout Initialization (Categorized to prevent overflow)
+-- -------------------------------------------------------------
+local LeftWeaponTabbox = ModsTab:AddLeftTabbox('Weapon Mods')
+local WeaponMainGroup = LeftWeaponTabbox:AddTab('Main Controls')
+local WeaponStatsGroup = LeftWeaponTabbox:AddTab('Handling & Recoil')
 
-local RightTabbox = ModsTab:AddRightTabbox('Utilities & Mods')
-local LaptopMainGroup = RightTabbox:AddTab('Laptop Mods')
+local RightTabbox = ModsTab:AddRightTabbox('Utilities & Laptop')
+local LaptopMainGroup = RightTabbox:AddTab('Laptop Movement')
+local LaptopCombatGroup = RightTabbox:AddTab('Laptop Combat')
 local SoundModGroup = RightTabbox:AddTab('Sound Modder')
 local SniperGroup = RightTabbox:AddTab('Sway Mods')
 
@@ -155,10 +159,10 @@ local function SyncWeaponStats(tool)
 end
 
 -- -------------------------------------------------------------
--- Weapon Group Setup
+-- Weapon Main Controls
 -- -------------------------------------------------------------
 
-WeaponGroup:AddButton({
+WeaponMainGroup:AddButton({
 	Text = 'Fetch & Sync Gun Stats',
 	Func = function()
 		local character = LocalPlayer.Character
@@ -172,7 +176,7 @@ WeaponGroup:AddButton({
 	end
 })
 
-WeaponGroup:AddButton({
+WeaponMainGroup:AddButton({
 	Text = 'Apply All Mods',
 	Func = function()
 		xpcall(ApplyWeaponMod, function(err)
@@ -181,42 +185,46 @@ WeaponGroup:AddButton({
 	end
 })
 
-WeaponGroup:AddDivider()
+WeaponMainGroup:AddDivider()
 
-WeaponGroup:AddToggle('ModBoltAction', {
+WeaponMainGroup:AddToggle('ModBoltAction', {
 	Text = 'Disable Bolt Action',
 	Default = false,
 	Callback = function() pcall(ApplyWeaponMod) end
 })
 
-WeaponGroup:AddToggle('MakeGunAutoAction', {
+WeaponMainGroup:AddToggle('MakeGunAutoAction', {
 	Text = 'Make Gun Auto',
 	Default = false,
 	Callback = function() pcall(ApplyWeaponMod) end
 })
 
-WeaponGroup:AddDivider()
+WeaponMainGroup:AddDivider()
 
-ReloadLabel = WeaponGroup:AddLabel('Default Reload: N/A')
-WeaponGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 3.0, Rounding = 2, Callback = function() ApplySingleMod('ReloadSpeed', 'ModReloadSpeed') end })
+ReloadLabel = WeaponMainGroup:AddLabel('Default Reload: N/A')
+WeaponMainGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 3.0, Rounding = 2, Callback = function() ApplySingleMod('ReloadSpeed', 'ModReloadSpeed') end })
 
-FireRateLabel = WeaponGroup:AddLabel('Default Fire Rate: N/A')
-WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3, Callback = function() ApplySingleMod('waittime', 'ModFireRate') end })
+FireRateLabel = WeaponMainGroup:AddLabel('Default Fire Rate: N/A')
+WeaponMainGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3, Callback = function() ApplySingleMod('waittime', 'ModFireRate') end })
 
-RecoilLabel = WeaponGroup:AddLabel('Default Recoil Y: N/A')
-WeaponGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2, Callback = function() ApplySingleMod('GunRecoil', 'ModRecoil') end })
+CooldownLabel = WeaponMainGroup:AddLabel('Default Cooldown: N/A')
+WeaponMainGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2, Callback = function() ApplySingleMod('cooldown', 'ModCooldown') end })
 
-RecoilXLabel = WeaponGroup:AddLabel('Default Recoil X: N/A')
-WeaponGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2, Callback = function() ApplySingleMod('GunRecoilX', 'ModRecoilX') end })
+-- -------------------------------------------------------------
+-- Weapon Handling & Recoil
+-- -------------------------------------------------------------
 
-AimSpeedLabel = WeaponGroup:AddLabel('Default Aim Speed: N/A')
-WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2, Callback = function() ApplySingleMod('AimSpeed', 'ModAimSpeed') end })
+RecoilLabel = WeaponStatsGroup:AddLabel('Default Recoil Y: N/A')
+WeaponStatsGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2, Callback = function() ApplySingleMod('GunRecoil', 'ModRecoil') end })
 
-CooldownLabel = WeaponGroup:AddLabel('Default Cooldown: N/A')
-WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2, Callback = function() ApplySingleMod('cooldown', 'ModCooldown') end })
+RecoilXLabel = WeaponStatsGroup:AddLabel('Default Recoil X: N/A')
+WeaponStatsGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2, Callback = function() ApplySingleMod('GunRecoilX', 'ModRecoilX') end })
 
-GuardTimeLabel = WeaponGroup:AddLabel('Default Guard Time: N/A')
-WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2, Callback = function() ApplySingleMod('guardTime', 'ModGuardTime') end })
+AimSpeedLabel = WeaponStatsGroup:AddLabel('Default Aim Speed: N/A')
+WeaponStatsGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2, Callback = function() ApplySingleMod('AimSpeed', 'ModAimSpeed') end })
+
+GuardTimeLabel = WeaponStatsGroup:AddLabel('Default Guard Time: N/A')
+WeaponStatsGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2, Callback = function() ApplySingleMod('guardTime', 'ModGuardTime') end })
 
 -- -------------------------------------------------------------
 -- Sound Modder Setup
@@ -256,7 +264,7 @@ end
 
 local ToolSoundConnection = nil
 SoundModGroup:AddToggle('AutoUpdateSounds', {
-	Text = 'Auto-Update Equipped Sound Loop',
+	Text = 'Auto-Update Sound Loop',
 	Default = false,
 	Callback = function(Value)
 		if Value then
@@ -286,7 +294,7 @@ SoundModGroup:AddButton({
 })
 
 -- -------------------------------------------------------------
--- Laptop Modder Setup
+-- Laptop Movement & Utility
 -- -------------------------------------------------------------
 
 local function ApplyLaptopMod()
@@ -341,12 +349,6 @@ LaptopMainGroup:AddButton({
 LaptopMainGroup:AddDivider()
 LaptopMainGroup:AddSlider('LaptopFlightSpeed', { Text = 'Flight Speed', Default = 32, Min = 10, Max = 500, Rounding = 0, Callback = function() pcall(ApplyLaptopMod) end })
 LaptopMainGroup:AddSlider('LaptopTurnSpeed', { Text = 'Turn Speed', Default = 90, Min = 10, Max = 500, Rounding = 0, Callback = function() pcall(ApplyLaptopMod) end })
-LaptopMainGroup:AddSlider('LaptopCloakDuration', { Text = 'Cloak Duration', Default = 10, Min = 1, Max = 60, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
-LaptopMainGroup:AddSlider('LaptopCloakCooldown', { Text = 'Cloak Cooldown', Default = 5, Min = 0, Max = 30, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
-LaptopMainGroup:AddSlider('LaptopDefibCooldown', { Text = 'Defib Cooldown', Default = 5, Min = 0, Max = 30, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
-LaptopMainGroup:AddSlider('LaptopGunRecharge', { Text = 'Gun Recharge Rate', Default = 1, Min = 0, Max = 10, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
-LaptopMainGroup:AddSlider('LaptopGunDamage', { Text = 'Gun Damage', Default = 20, Min = 1, Max = 500, Rounding = 0, Callback = function() pcall(ApplyLaptopMod) end })
-LaptopMainGroup:AddSlider('LaptopDroneHealth', { Text = 'Drone Health', Default = 100, Min = 10, Max = 1000, Rounding = 0, Callback = function() pcall(ApplyLaptopMod) end })
 LaptopMainGroup:AddToggle('LaptopCanOpenDoors', { Text = 'Can Open Doors', Default = true, Callback = function() pcall(ApplyLaptopMod) end })
 
 local RemoveLaptopEffectsLoop = nil
@@ -382,6 +384,17 @@ LaptopMainGroup:AddToggle('RemoveLaptopEffects', {
 		end
 	end
 })
+
+-- -------------------------------------------------------------
+-- Laptop Combat & Stats
+-- -------------------------------------------------------------
+
+LaptopCombatGroup:AddSlider('LaptopCloakDuration', { Text = 'Cloak Duration', Default = 10, Min = 1, Max = 60, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
+LaptopCombatGroup:AddSlider('LaptopCloakCooldown', { Text = 'Cloak Cooldown', Default = 5, Min = 0, Max = 30, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
+LaptopCombatGroup:AddSlider('LaptopDefibCooldown', { Text = 'Defib Cooldown', Default = 5, Min = 0, Max = 30, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
+LaptopCombatGroup:AddSlider('LaptopGunRecharge', { Text = 'Gun Recharge Rate', Default = 1, Min = 0, Max = 10, Rounding = 1, Callback = function() pcall(ApplyLaptopMod) end })
+LaptopCombatGroup:AddSlider('LaptopGunDamage', { Text = 'Gun Damage', Default = 20, Min = 1, Max = 500, Rounding = 0, Callback = function() pcall(ApplyLaptopMod) end })
+LaptopCombatGroup:AddSlider('LaptopDroneHealth', { Text = 'Drone Health', Default = 100, Min = 10, Max = 1000, Rounding = 0, Callback = function() pcall(ApplyLaptopMod) end })
 
 -- -------------------------------------------------------------
 -- Sway Modder Setup
