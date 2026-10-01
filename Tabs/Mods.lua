@@ -134,11 +134,10 @@ local function SyncWeaponStats(tool)
 	end
 end
 
--- Auto-listen for tool equips
-local function HookCharacterEquip(char)
+-- Auto-listen for equipped tools
+local function HookCharacter(char)
 	if not char then return end
 
-	-- Check for existing equipped tool
 	local currentTool = char:FindFirstChildOfClass("Tool")
 	if currentTool then
 		task.spawn(function()
@@ -146,7 +145,6 @@ local function HookCharacterEquip(char)
 		end)
 	end
 
-	-- Listen for newly equipped tools
 	char.ChildAdded:Connect(function(child)
 		if child:IsA("Tool") then
 			task.wait(0.05)
@@ -155,14 +153,11 @@ local function HookCharacterEquip(char)
 	end)
 end
 
--- Hook current character and future character spawns
 if LocalPlayer.Character then
-	HookCharacterEquip(LocalPlayer.Character)
+	HookCharacter(LocalPlayer.Character)
 end
 
-LocalPlayer.CharacterAdded:Connect(function(newChar)
-	HookCharacterEquip(newChar)
-end)
+LocalPlayer.CharacterAdded:Connect(HookCharacter)
 
 WeaponGroup:AddButton({
 	Text = 'Fetch & Sync Gun Stats',
@@ -223,49 +218,48 @@ WeaponGroup:AddToggle('MakeGunAutoAction', {
 
 WeaponGroup:AddDivider()
 
--- Slider definitions with attached single apply buttons
 ReloadLabel = WeaponGroup:AddLabel('Default Reload: N/A')
-local ModReloadSpeed = WeaponGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 3.0, Rounding = 2 })
-ModReloadSpeed:AddButton({ Text = 'Apply', Func = function() ApplySingleMod('ReloadSpeed', 'ModReloadSpeed') end })
+WeaponGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 3.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Reload Speed', Func = function() ApplySingleMod('ReloadSpeed', 'ModReloadSpeed') end })
 
 WeaponGroup:AddDivider()
 
 FireRateLabel = WeaponGroup:AddLabel('Default Fire Rate: N/A')
-local ModFireRate = WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3 })
-ModFireRate:AddButton({ Text = 'Apply', Func = function() ApplySingleMod('waittime', 'ModFireRate') end })
+WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3 })
+WeaponGroup:AddButton({ Text = 'Apply Fire Rate', Func = function() ApplySingleMod('waittime', 'ModFireRate') end })
 
 WeaponGroup:AddDivider()
 
 RecoilLabel = WeaponGroup:AddLabel('Default Recoil Y: N/A')
-local ModRecoil = WeaponGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
-ModRecoil:AddButton({ Text = 'Apply', Func = function() ApplySingleMod('GunRecoil', 'ModRecoil') end })
+WeaponGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Vertical Recoil', Func = function() ApplySingleMod('GunRecoil', 'ModRecoil') end })
 
 WeaponGroup:AddDivider()
 
 RecoilXLabel = WeaponGroup:AddLabel('Default Recoil X: N/A')
-local ModRecoilX = WeaponGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
-ModRecoilX:AddButton({ Text = 'Apply', Func = function() ApplySingleMod('GunRecoilX', 'ModRecoilX') end })
+WeaponGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Horizontal Recoil', Func = function() ApplySingleMod('GunRecoilX', 'ModRecoilX') end })
 
 WeaponGroup:AddDivider()
 
 AimSpeedLabel = WeaponGroup:AddLabel('Default Aim Speed: N/A')
-local ModAimSpeed = WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2 })
-ModAimSpeed:AddButton({ Text = 'Apply', Func = function() ApplySingleMod('AimSpeed', 'ModAimSpeed') end })
+WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Aim Speed', Func = function() ApplySingleMod('AimSpeed', 'ModAimSpeed') end })
 
 WeaponGroup:AddDivider()
 
 CooldownLabel = WeaponGroup:AddLabel('Default Cooldown: N/A')
-local ModCooldown = WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2 })
-ModCooldown:AddButton({ Text = 'Apply', Func = function() ApplySingleMod('cooldown', 'ModCooldown') end })
+WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Cooldown', Func = function() ApplySingleMod('cooldown', 'ModCooldown') end })
 
 WeaponGroup:AddDivider()
 
 GuardTimeLabel = WeaponGroup:AddLabel('Default Guard Time: N/A')
-local ModGuardTime = WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
-ModGuardTime:AddButton({ Text = 'Apply', Func = function() ApplySingleMod('guardTime', 'ModGuardTime') end })
+WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
+WeaponGroup:AddButton({ Text = 'Apply Guard Time', Func = function() ApplySingleMod('guardTime', 'ModGuardTime') end })
 
 -- -------------------------------------------------------------
--- Rest of script (SoundModGroup, LaptopMainGroup, SniperGroup)
+-- Sound Modifications Group
 -- -------------------------------------------------------------
 
 SoundModGroup:AddInput('SoundIdInput', {
@@ -330,6 +324,10 @@ SoundModGroup:AddButton({
 		Library:Notify('Updated sounds in current tool!', 3)
 	end
 })
+
+-- -------------------------------------------------------------
+-- Laptop Modifications Group
+-- -------------------------------------------------------------
 
 local LaptopMainGroup = ModsTab:AddLeftGroupbox('Laptop Modifications')
 local LaptopVisualsGroup = ModsTab:AddRightGroupbox('Laptop Effects')
@@ -428,6 +426,10 @@ LaptopVisualsGroup:AddToggle('RemoveLaptopEffects', {
 		end
 	end
 })
+
+-- -------------------------------------------------------------
+-- Sway Modifications Group
+-- -------------------------------------------------------------
 
 local swayConnection = nil
 local characterConnection = nil
