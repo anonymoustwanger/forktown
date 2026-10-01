@@ -24,6 +24,33 @@ local function GetOriginalSettings(tool)
 	return {}
 end
 
+local function GrabWeaponStats()
+	local character = LocalPlayer.Character
+	if not character then error("Character not found") end
+
+	local tool = character:FindFirstChildOfClass("Tool")
+	if not tool then error("You need to hold a tool") end
+
+	local settingsModule = tool:FindFirstChild('Settings')
+	if not settingsModule or not settingsModule:IsA('ModuleScript') then error("Tool has no Settings module") end
+
+	local old = GetOriginalSettings(tool)
+
+	-- Read weapon stats into UI elements
+	if Options.ModReloadSpeed and old.ReloadSpeed ~= nil then Options.ModReloadSpeed:SetValue(old.ReloadSpeed) end
+	if Options.ModFireRate and old.waittime ~= nil then Options.ModFireRate:SetValue(old.waittime) end
+	if Options.ModRecoil and old.GunRecoil ~= nil then Options.ModRecoil:SetValue(old.GunRecoil) end
+	if Options.ModRecoilX and old.GunRecoilX ~= nil then Options.ModRecoilX:SetValue(old.GunRecoilX) end
+	if Options.ModAimSpeed and old.AimSpeed ~= nil then Options.ModAimSpeed:SetValue(old.AimSpeed) end
+	if Options.ModCooldown and old.cooldown ~= nil then Options.ModCooldown:SetValue(old.cooldown) end
+	if Options.ModGuardTime and old.guardTime ~= nil then Options.ModGuardTime:SetValue(old.guardTime) end
+
+	if Toggles.ModBoltAction and old.BoltAction ~= nil then Toggles.ModBoltAction:SetValue(not old.BoltAction) end
+	if Toggles.MakeGunAutoAction and old.auto ~= nil then Toggles.MakeGunAutoAction:SetValue(old.auto) end
+
+	Library:Notify('Grabbed original stats for ' .. tool.Name, 3)
+end
+
 local function ApplyWeaponMod()
 	local character = LocalPlayer.Character
 	if not character then error("Character not found") end
@@ -65,7 +92,16 @@ local function ApplyWeaponMod()
 end
 
 WeaponGroup:AddButton({
-	Text = 'test123',
+	Text = 'Grab Equipped Weapon Stats',
+	Func = function()
+		xpcall(GrabWeaponStats, function(err)
+			Library:Notify('Error: ' .. tostring(err), 3)
+		end)
+	end
+})
+
+WeaponGroup:AddButton({
+	Text = 'Apply Modifications',
 	Func = function()
 		xpcall(ApplyWeaponMod, function(err)
 			Library:Notify('Error: ' .. tostring(err), 3)
@@ -98,6 +134,23 @@ WeaponGroup:AddDivider()
 WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModRange', { Text = 'Range Multiplier', Default = 1.0, Min = 0.5, Max = 5.0, Rounding = 1 })
+
+-- Automatically grab stats when a tool is equipped
+local function ConnectAutoGrab(char)
+	if not char then return end
+	char.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") and child:FindFirstChild("Settings") then
+			task.wait(0.1)
+			pcall(GrabWeaponStats)
+		end
+	end)
+end
+
+if LocalPlayer.Character then
+	ConnectAutoGrab(LocalPlayer.Character)
+end
+
+LocalPlayer.CharacterAdded:Connect(ConnectAutoGrab)
 
 SoundModGroup:AddInput('SoundIdInput', {
 	Default = 'rbxassetid://0',
@@ -284,7 +337,6 @@ local function toggleAimSwayRemoval(enabled)
 								item.Value = 0
 							end
 						end)
-						-- Optional tracking tag if needed, or rely on toggle state cleanup
 					end
 				end
 			end
