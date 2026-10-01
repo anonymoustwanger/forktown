@@ -109,6 +109,46 @@ WeaponGroup:AddButton({
 	end
 })
 
+local AutoGrabConnection = nil
+local AutoGrabCharConnection = nil
+
+WeaponGroup:AddToggle('AutoGrabStats', {
+	Text = 'Auto-Grab Stats on Equip',
+	Default = false,
+	Callback = function(Value)
+		if Value then
+			local function hookCharacter(char)
+				if AutoGrabConnection then AutoGrabConnection:Disconnect() AutoGrabConnection = nil end
+				if not char then return end
+
+				-- Grab immediately if holding a tool when toggling on
+				local heldTool = char:FindFirstChildOfClass("Tool")
+				if heldTool and heldTool:FindFirstChild("Settings") then
+					pcall(GrabWeaponStats)
+				end
+
+				AutoGrabConnection = char.ChildAdded:Connect(function(child)
+					if child:IsA("Tool") and child:FindFirstChild("Settings") then
+						task.wait(0.1)
+						pcall(GrabWeaponStats)
+					end
+				end)
+			end
+
+			if LocalPlayer.Character then
+				hookCharacter(LocalPlayer.Character)
+			end
+
+			AutoGrabCharConnection = LocalPlayer.CharacterAdded:Connect(hookCharacter)
+			Library:Notify('Auto-grab enabled!', 3)
+		else
+			if AutoGrabConnection then AutoGrabConnection:Disconnect() AutoGrabConnection = nil end
+			if AutoGrabCharConnection then AutoGrabCharConnection:Disconnect() AutoGrabCharConnection = nil end
+			Library:Notify('Auto-grab disabled.', 3)
+		end
+	end
+})
+
 WeaponGroup:AddDivider()
 
 WeaponGroup:AddToggle('ModBoltAction', {
@@ -134,23 +174,6 @@ WeaponGroup:AddDivider()
 WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModRange', { Text = 'Range Multiplier', Default = 1.0, Min = 0.5, Max = 5.0, Rounding = 1 })
-
--- Automatically grab stats when a tool is equipped
-local function ConnectAutoGrab(char)
-	if not char then return end
-	char.ChildAdded:Connect(function(child)
-		if child:IsA("Tool") and child:FindFirstChild("Settings") then
-			task.wait(0.1)
-			pcall(GrabWeaponStats)
-		end
-	end)
-end
-
-if LocalPlayer.Character then
-	ConnectAutoGrab(LocalPlayer.Character)
-end
-
-LocalPlayer.CharacterAdded:Connect(ConnectAutoGrab)
 
 SoundModGroup:AddInput('SoundIdInput', {
 	Default = 'rbxassetid://0',
