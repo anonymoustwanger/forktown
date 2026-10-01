@@ -57,7 +57,6 @@ const IsLocal = isfile("SkidWare/Settings.json") and HttpService:JSONDecode(read
 const Environment = getfenv()
 const TitleText = "SkidWare - made by noritery, modularized by lua_u"
 const DataPing = Stats.Network.ServerStatsItem["Data Ping"]
-local UpdateFlag = false
 local FrameCounter = 0
 local FPS = 60
 local LastTick = tick()
@@ -81,15 +80,12 @@ const function HGet(url: string)
 	return ret.Body
 end
 
-const function Get(name: string, update: boolean?)
-	if (not isfile("SkidWare/" .. name)) or update then
-		print("Downloading", name)
-		const code = HGet(BaseURL .. name)
-		print("Got", name)
-		writefile("SkidWare/" .. name, code)
-	end
-
-	return readfile("SkidWare/" .. name)
+-- Fetches script directly from memory without saving to disk
+const function Get(name: string)
+	print("Fetching", name)
+	const code = HGet(BaseURL .. name)
+	print("Got", name)
+	return code
 end
 
 const function LoadTab(tab)
@@ -109,10 +105,7 @@ function Load(name: string)
 		setfenv(Func, Environment) -- Make sure whatever globals it adds goes to here. - lua_u
 		return Func()
 	else
-		local Code = Get( name, UpdateFlag)
-		if Code == "" then
-			Code = Get(name, true)
-		end
+		local Code = Get(name)
 		local Func = loadstring(Code, name)
 		if typeof(Func) ~= "function" then
 			print("err", Func)
@@ -125,15 +118,6 @@ end
 function RegisterDrawing(drawingObj)
 	table.insert(DrawingRegistry, drawingObj)
 	return drawingObj
-end
-
--- Main Script Body
-local CurrentVersion = Get("version")
-const OtherVersion = HGet(BaseURL .. "version")
-if (CurrentVersion ~= OtherVersion and not IsLocal) and AutoUpdate then -- Dont try to update if DevelopmentBuild is enabled, probably should switch it to auto-updating based on sha256 hash's but whatever. - lua_u
-	UpdateFlag = true
-	CurrentVersion = OtherVersion
-	writefile("SkidWare/version", OtherVersion) -- This could fail if someone closes it down before it all loads, I or someone else should fix it in the near future cause I can NOT be damned to do it right now. - lua_u
 end
 
 -- Load ze UI Modules
@@ -178,7 +162,7 @@ task.spawn(function()
 		local ping = 0
 		pcall(function()
 			ping = math_floor(DataPing:GetValue())
-		end)--string.format("%s | %d FPS | %d ms", TitleText, FPS, ping)
+		end)
 		Library:SetWatermark(`{TitleText} | {FPS} FPS | {ping} ms`)
 	end
 end)
