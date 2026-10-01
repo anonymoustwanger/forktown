@@ -12,9 +12,9 @@ const function HGet(url: string)
 	return ret.Body
 end
 
-if not isfolder("SkidWare") then
+--[[if not isfolder("SkidWare") then
 	makefolder("SkidWare")
-end
+end]]
 
 BaseURL = "https://raw.githubusercontent.com/anonymoustwanger/forktown/refs/heads/main/"
 const Url = BaseURL .. "Core.lua"
