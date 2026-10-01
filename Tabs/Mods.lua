@@ -64,8 +64,6 @@ local function ApplyWeaponMod()
 	local success, mod = pcall(require, settingsModule)
 	if not success or type(mod) ~= 'table' then error("Failed to require Settings module") end
 
-	local old = GetOriginalSettings(tool)
-
 	local cfg = {
 		ReloadSpeed = Options.ModReloadSpeed and Options.ModReloadSpeed.Value or mod.ReloadSpeed,
 		ReloadSpeed2 = Options.ModReloadSpeed and Options.ModReloadSpeed.Value or mod.ReloadSpeed2,
@@ -82,10 +80,9 @@ local function ApplyWeaponMod()
 		accMult = (Toggles.SilentAimEnabled and Toggles.SilentAimEnabled.Value) and 0 or mod.accMult,
 	}
 
+	-- Apply all values directly to the current weapon module
 	for index, v in pairs(cfg) do
-		if v ~= old[index] then
-			mod[index] = v
-		end
+		mod[index] = v
 	end
 
 	Library:Notify('Applied modifications to equipped weapon!', 3)
