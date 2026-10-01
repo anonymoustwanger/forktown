@@ -109,46 +109,6 @@ WeaponGroup:AddButton({
 	end
 })
 
-local AutoGrabConnection = nil
-local AutoGrabCharConnection = nil
-
-WeaponGroup:AddToggle('AutoGrabStats', {
-	Text = 'Auto-Grab Stats on Equip',
-	Default = false,
-	Callback = function(Value)
-		if Value then
-			local function hookCharacter(char)
-				if AutoGrabConnection then AutoGrabConnection:Disconnect() AutoGrabConnection = nil end
-				if not char then return end
-
-				-- Grab immediately if holding a tool when toggling on
-				local heldTool = char:FindFirstChildOfClass("Tool")
-				if heldTool and heldTool:FindFirstChild("Settings") then
-					pcall(GrabWeaponStats)
-				end
-
-				AutoGrabConnection = char.ChildAdded:Connect(function(child)
-					if child:IsA("Tool") and child:FindFirstChild("Settings") then
-						task.wait(0.1)
-						pcall(GrabWeaponStats)
-					end
-				end)
-			end
-
-			if LocalPlayer.Character then
-				hookCharacter(LocalPlayer.Character)
-			end
-
-			AutoGrabCharConnection = LocalPlayer.CharacterAdded:Connect(hookCharacter)
-			Library:Notify('Auto-grab enabled!', 3)
-		else
-			if AutoGrabConnection then AutoGrabConnection:Disconnect() AutoGrabConnection = nil end
-			if AutoGrabCharConnection then AutoGrabCharConnection:Disconnect() AutoGrabCharConnection = nil end
-			Library:Notify('Auto-grab disabled.', 3)
-		end
-	end
-})
-
 WeaponGroup:AddDivider()
 
 WeaponGroup:AddToggle('ModBoltAction', {
@@ -163,11 +123,11 @@ WeaponGroup:AddToggle('MakeGunAutoAction', {
 
 WeaponGroup:AddDivider()
 
-WeaponGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 3.0, Rounding = 2 })
-WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3 })
+WeaponGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 10.0, Rounding = 2 })
+WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 2.0, Rounding = 3 })
 WeaponGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
-WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2 })
+WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 2.0, Rounding = 2 })
 
 WeaponGroup:AddDivider()
 
