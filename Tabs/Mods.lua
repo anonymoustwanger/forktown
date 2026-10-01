@@ -73,10 +73,26 @@ WeaponGroup:AddButton({
 	end
 })
 
+WeaponGroup:AddButton({
+	Text = 'Get weapon stats',
+	Func = function()
+		xpcall(ApplyWeaponMod, function(err)
+			Library:Notify('Error: ' .. tostring(err), 3)
+		end)
+	end
+})
+
 WeaponGroup:AddDivider()
 
-WeaponGroup:AddToggle('ModBoltAction', { Text = 'Disable Bolt Action', Default = false })
-WeaponGroup:AddToggle('MakeGunAutoAction', { Text = 'MakeGunAuto', Default = false })
+WeaponGroup:AddToggle('ModBoltAction', {
+	Text = 'Disable Bolt Action',
+	Default = false
+})
+
+WeaponGroup:AddToggle('MakeGunAutoAction', {
+	Text = 'MakeGunAuto',
+	Default = false
+})
 
 WeaponGroup:AddDivider()
 
@@ -91,55 +107,6 @@ WeaponGroup:AddDivider()
 WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModRange', { Text = 'Range Multiplier', Default = 1.0, Min = 0.5, Max = 5.0, Rounding = 1 })
-
-
--- =========================================================================
--- AUTO-SYNC UI TO WEAPON STATS (NEW ADDITION)
--- =========================================================================
-local function SyncWeaponStatsToUI(tool)
-	if not tool or not tool:IsA("Tool") then return end
-	
-	local old = GetOriginalSettings(tool)
-	if not old then return end
-
-	-- Update UI Elements safely using pcall incase a value is nil or out of slider bounds
-	pcall(function()
-		if old.ReloadSpeed and Options.ModReloadSpeed then Options.ModReloadSpeed:SetValue(old.ReloadSpeed) end
-		if old.waittime and Options.ModFireRate then Options.ModFireRate:SetValue(old.waittime) end
-		if old.GunRecoil and Options.ModRecoil then Options.ModRecoil:SetValue(old.GunRecoil) end
-		if old.GunRecoilX and Options.ModRecoilX then Options.ModRecoilX:SetValue(old.GunRecoilX) end
-		if old.AimSpeed and Options.ModAimSpeed then Options.ModAimSpeed:SetValue(old.AimSpeed) end
-		if old.cooldown and Options.ModCooldown then Options.ModCooldown:SetValue(old.cooldown) end
-		if old.guardTime and Options.ModGuardTime then Options.ModGuardTime:SetValue(old.guardTime) end
-
-		if old.BoltAction ~= nil and Toggles.ModBoltAction then Toggles.ModBoltAction:SetValue(not old.BoltAction) end
-		if old.auto ~= nil and Toggles.MakeGunAutoAction then Toggles.MakeGunAutoAction:SetValue(old.auto) end
-	end)
-end
-
-local function SetupSyncConnections(character)
-	-- Sync if they already have a tool equipped right now
-	local currentTool = character:FindFirstChildOfClass("Tool")
-	if currentTool then
-		SyncWeaponStatsToUI(currentTool)
-	end
-
-	-- Listen for when the player equips a tool (ChildAdded to character)
-	character.ChildAdded:Connect(function(child)
-		if child:IsA("Tool") then
-			task.wait(0.1) -- Short wait to ensure the settings module has loaded
-			SyncWeaponStatsToUI(child)
-		end
-	end)
-end
-
--- Hook it up for the current and future characters
-if LocalPlayer.Character then
-	SetupSyncConnections(LocalPlayer.Character)
-end
-LocalPlayer.CharacterAdded:Connect(SetupSyncConnections)
--- =========================================================================
-
 
 SoundModGroup:AddInput('SoundIdInput', {
 	Default = 'rbxassetid://0',
@@ -226,16 +193,25 @@ local function ApplyLaptopMod()
 	local old = GetOriginalSettings(tool)
 
 	local cfg = {
+		-- Duration
 		droneCloakDuration = Options.LaptopCloakDuration and Options.LaptopCloakDuration.Value or mod.droneCloakDuration,
+
+		-- Cooldowns
 		droneCloakCooldown = Options.LaptopCloakCooldown and Options.LaptopCloakCooldown.Value or mod.droneCloakCooldown,
 		droneDefibCooldown = Options.LaptopDefibCooldown and Options.LaptopDefibCooldown.Value or mod.droneDefibCooldown,
 		droneGunRecharge = Options.LaptopGunRecharge and Options.LaptopGunRecharge.Value or mod.droneGunRecharge,
+
+		-- Distance & Range
 		droneCraneDistance = Options.LaptopCraneDistance and Options.LaptopCraneDistance.Value or mod.droneCraneDistance,
 		droneGunRange = Options.LaptopGunRange and Options.LaptopGunRange.Value or mod.droneGunRange,
 		droneDefibRange = Options.LaptopDefibRange and Options.LaptopDefibRange.Value or mod.droneDefibRange,
+
+		-- Burst & Spread
 		droneGunBurst = Options.LaptopGunBurst and Options.LaptopGunBurst.Value or mod.droneGunBurst,
 		droneGunBurstTime = Options.LaptopGunBurstTime and Options.LaptopGunBurstTime.Value or mod.droneGunBurstTime,
 		droneGunSpread = Options.LaptopGunSpread and Options.LaptopGunSpread.Value or mod.droneGunSpread,
+
+		-- Additional Drone Stats
 		droneGunDamage = Options.LaptopGunDamage and Options.LaptopGunDamage.Value or mod.droneGunDamage,
 		flightSpeed = Options.LaptopFlightSpeed and Options.LaptopFlightSpeed.Value or mod.flightSpeed,
 		turnSpeed = Options.LaptopTurnSpeed and Options.LaptopTurnSpeed.Value or mod.turnSpeed,
@@ -317,6 +293,7 @@ local function toggleAimSwayRemoval(enabled)
 								item.Value = 0
 							end
 						end)
+						-- Optional tracking tag if needed, or rely on toggle state cleanup
 					end
 				end
 			end
