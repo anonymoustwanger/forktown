@@ -133,7 +133,6 @@ Window = Library:CreateWindow({
 	TabPadding = 8,
 	MenuFadeTime = 0.2
 })
-Library:SetWatermarkVisibility(false)
 
 MainTab = Window:AddTab('Main')
 CombatTab = Window:AddTab('Combat')
@@ -146,26 +145,6 @@ InfoTab = Window:AddTab('Info')
 DrawingRegistry = {}
 ESPCache = {}
 OriginalPartState = {}
-
-const WatermarkConnection = RunService.RenderStepped:Connect(function()
-	FrameCounter = FrameCounter + 1
-	const CurrentTime = tick()
-	if CurrentTime - LastTick >= 1 then
-		FPS = FrameCounter
-		FrameCounter = 0
-		LastTick = CurrentTime
-	end
-end)
-
-task.spawn(function()
-	while task.wait(1/15) do
-		local ping = 0
-		pcall(function()
-			ping = math_floor(DataPing:GetValue())
-		end)
-		Library:SetWatermark(`{TitleText} | {FPS} FPS | {ping} ms`)
-	end
-end)
 
 -- Load Ze Tabz
 LoadTab(MainTab)
