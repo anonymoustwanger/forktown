@@ -2,9 +2,12 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 print("new version loading")
+
 local WeaponGroup = ModsTab:AddLeftGroupbox('Equipped Weapon Modifications')
 local SoundModGroup = ModsTab:AddRightGroupbox('Gun Sound Modder')
 local SniperGroup = ModsTab:AddRightGroupbox('Sway Mods')
+local LaptopMainGroup = ModsTab:AddLeftGroupbox('Laptop Modifications')
+local LaptopVisualsGroup = ModsTab:AddRightGroupbox('Laptop Effects')
 
 local originalSettingsCache = {}
 
@@ -41,7 +44,6 @@ local function ApplySingleMod(key, optionName)
 	local success, mod = pcall(require, settingsModule)
 	if not success or type(mod) ~= 'table' then return Library:Notify("Failed to require Settings module", 3) end
 
-	-- Ensure originals are cached before modifying
 	GetOriginalSettings(tool)
 
 	local option = Options[optionName]
@@ -49,8 +51,7 @@ local function ApplySingleMod(key, optionName)
 
 	local val = option.Value
 	mod[key] = val
-	
-	-- Special case for weapons that use two reload speeds
+
 	if key == "ReloadSpeed" and mod["ReloadSpeed2"] ~= nil then
 		mod["ReloadSpeed2"] = val
 	end
@@ -101,7 +102,7 @@ end
 -- UI Labels
 local ReloadLabel, FireRateLabel, RecoilLabel, RecoilXLabel, AimSpeedLabel, CooldownLabel, GuardTimeLabel
 
--- Sync weapon stats to sliders & labels
+-- Sync weapon & laptop stats to sliders & labels on tool equip
 local function SyncWeaponStats(tool)
 	if not tool or not tool:IsA("Tool") then return end
 
@@ -111,34 +112,45 @@ local function SyncWeaponStats(tool)
 	local old = GetOriginalSettings(tool)
 	if not old or next(old) == nil then return end
 
-	if old.ReloadSpeed ~= nil and Options.ModReloadSpeed then 
-		Options.ModReloadSpeed:SetValue(old.ReloadSpeed) 
-		if ReloadLabel then ReloadLabel:SetText('Default Reload: ' .. tostring(old.ReloadSpeed)) end 
+	-- Weapon Stats Sync
+	if old.ReloadSpeed ~= nil and Options.ModReloadSpeed then
+		Options.ModReloadSpeed:SetValue(old.ReloadSpeed)
+		if ReloadLabel then ReloadLabel:SetText('Default Reload: ' .. tostring(old.ReloadSpeed)) end
 	end
-	if old.waittime ~= nil and Options.ModFireRate then 
-		Options.ModFireRate:SetValue(old.waittime) 
-		if FireRateLabel then FireRateLabel:SetText('Default Fire Rate: ' .. tostring(old.waittime)) end 
+	if old.waittime ~= nil and Options.ModFireRate then
+		Options.ModFireRate:SetValue(old.waittime)
+		if FireRateLabel then FireRateLabel:SetText('Default Fire Rate: ' .. tostring(old.waittime)) end
 	end
-	if old.GunRecoil ~= nil and Options.ModRecoil then 
-		Options.ModRecoil:SetValue(old.GunRecoil) 
-		if RecoilLabel then RecoilLabel:SetText('Default Recoil Y: ' .. tostring(old.GunRecoil)) end 
+	if old.GunRecoil ~= nil and Options.ModRecoil then
+		Options.ModRecoil:SetValue(old.GunRecoil)
+		if RecoilLabel then RecoilLabel:SetText('Default Recoil Y: ' .. tostring(old.GunRecoil)) end
 	end
-	if old.GunRecoilX ~= nil and Options.ModRecoilX then 
-		Options.ModRecoilX:SetValue(old.GunRecoilX) 
-		if RecoilXLabel then RecoilXLabel:SetText('Default Recoil X: ' .. tostring(old.GunRecoilX)) end 
+	if old.GunRecoilX ~= nil and Options.ModRecoilX then
+		Options.ModRecoilX:SetValue(old.GunRecoilX)
+		if RecoilXLabel then RecoilXLabel:SetText('Default Recoil X: ' .. tostring(old.GunRecoilX)) end
 	end
-	if old.AimSpeed ~= nil and Options.ModAimSpeed then 
-		Options.ModAimSpeed:SetValue(old.AimSpeed) 
-		if AimSpeedLabel then AimSpeedLabel:SetText('Default Aim Speed: ' .. tostring(old.AimSpeed)) end 
+	if old.AimSpeed ~= nil and Options.ModAimSpeed then
+		Options.ModAimSpeed:SetValue(old.AimSpeed)
+		if AimSpeedLabel then AimSpeedLabel:SetText('Default Aim Speed: ' .. tostring(old.AimSpeed)) end
 	end
-	if old.cooldown ~= nil and Options.ModCooldown then 
-		Options.ModCooldown:SetValue(old.cooldown) 
-		if CooldownLabel then CooldownLabel:SetText('Default Cooldown: ' .. tostring(old.cooldown)) end 
+	if old.cooldown ~= nil and Options.ModCooldown then
+		Options.ModCooldown:SetValue(old.cooldown)
+		if CooldownLabel then CooldownLabel:SetText('Default Cooldown: ' .. tostring(old.cooldown)) end
 	end
-	if old.guardTime ~= nil and Options.ModGuardTime then 
-		Options.ModGuardTime:SetValue(old.guardTime) 
-		if GuardTimeLabel then GuardTimeLabel:SetText('Default Guard Time: ' .. tostring(old.guardTime)) end 
+	if old.guardTime ~= nil and Options.ModGuardTime then
+		Options.ModGuardTime:SetValue(old.guardTime)
+		if GuardTimeLabel then GuardTimeLabel:SetText('Default Guard Time: ' .. tostring(old.guardTime)) end
 	end
+
+	-- Laptop Stats Sync
+	if old.flightSpeed ~= nil and Options.LaptopFlightSpeed then Options.LaptopFlightSpeed:SetValue(old.flightSpeed) end
+	if old.turnSpeed ~= nil and Options.LaptopTurnSpeed then Options.LaptopTurnSpeed:SetValue(old.turnSpeed) end
+	if old.droneCloakDuration ~= nil and Options.LaptopCloakDuration then Options.LaptopCloakDuration:SetValue(old.droneCloakDuration) end
+	if old.droneCloakCooldown ~= nil and Options.LaptopCloakCooldown then Options.LaptopCloakCooldown:SetValue(old.droneCloakCooldown) end
+	if old.droneDefibCooldown ~= nil and Options.LaptopDefibCooldown then Options.LaptopDefibCooldown:SetValue(old.droneDefibCooldown) end
+	if old.droneGunRecharge ~= nil and Options.LaptopGunRecharge then Options.LaptopGunRecharge:SetValue(old.droneGunRecharge) end
+	if old.droneGunDamage ~= nil and Options.LaptopGunDamage then Options.LaptopGunDamage:SetValue(old.droneGunDamage) end
+	if old.droneHealth ~= nil and Options.LaptopDroneHealth then Options.LaptopDroneHealth:SetValue(old.droneHealth) end
 end
 
 WeaponGroup:AddButton({
@@ -170,15 +182,7 @@ WeaponGroup:AddToggle('ModBoltAction', {
 	Text = 'Disable Bolt Action',
 	Default = false,
 	Callback = function(Value)
-		local char = LocalPlayer.Character
-		if char and char:FindFirstChildOfClass("Tool") then
-			local t = char:FindFirstChildOfClass("Tool")
-			local s = t:FindFirstChild("Settings")
-			if s and s:IsA("ModuleScript") then
-				local m = require(s)
-				if m and type(m) == 'table' then m.BoltAction = not Value end
-			end
-		end
+		pcall(ApplyWeaponMod)
 	end
 })
 
@@ -186,15 +190,7 @@ WeaponGroup:AddToggle('MakeGunAutoAction', {
 	Text = 'Make Gun Auto',
 	Default = false,
 	Callback = function(Value)
-		local char = LocalPlayer.Character
-		if char and char:FindFirstChildOfClass("Tool") then
-			local t = char:FindFirstChildOfClass("Tool")
-			local s = t:FindFirstChild("Settings")
-			if s and s:IsA("ModuleScript") then
-				local m = require(s)
-				if m and type(m) == 'table' then m.auto = Value end
-			end
-		end
+		pcall(ApplyWeaponMod)
 	end
 })
 
@@ -318,9 +314,6 @@ SoundModGroup:AddButton({
 -- Laptop Modder
 -- -------------------------------------------------------------
 
-local LaptopMainGroup = ModsTab:AddLeftGroupbox('Laptop Modifications')
-local LaptopVisualsGroup = ModsTab:AddRightGroupbox('Laptop Effects')
-
 local function ApplyLaptopMod()
 	local character = LocalPlayer.Character
 	if not character then error("Character not found") end
@@ -380,6 +373,13 @@ LaptopMainGroup:AddButton({
 LaptopMainGroup:AddDivider()
 LaptopMainGroup:AddSlider('LaptopFlightSpeed', { Text = 'Flight Speed', Default = 32, Min = 10, Max = 500, Rounding = 0 })
 LaptopMainGroup:AddSlider('LaptopTurnSpeed', { Text = 'Turn Speed', Default = 90, Min = 10, Max = 500, Rounding = 0 })
+LaptopMainGroup:AddSlider('LaptopCloakDuration', { Text = 'Cloak Duration', Default = 10, Min = 1, Max = 60, Rounding = 1 })
+LaptopMainGroup:AddSlider('LaptopCloakCooldown', { Text = 'Cloak Cooldown', Default = 5, Min = 0, Max = 30, Rounding = 1 })
+LaptopMainGroup:AddSlider('LaptopDefibCooldown', { Text = 'Defib Cooldown', Default = 5, Min = 0, Max = 30, Rounding = 1 })
+LaptopMainGroup:AddSlider('LaptopGunRecharge', { Text = 'Gun Recharge Rate', Default = 1, Min = 0, Max = 10, Rounding = 1 })
+LaptopMainGroup:AddSlider('LaptopGunDamage', { Text = 'Gun Damage', Default = 20, Min = 1, Max = 500, Rounding = 0 })
+LaptopMainGroup:AddSlider('LaptopDroneHealth', { Text = 'Drone Health', Default = 100, Min = 10, Max = 1000, Rounding = 0 })
+LaptopMainGroup:AddToggle('LaptopCanOpenDoors', { Text = 'Can Open Doors', Default = true })
 
 local RemoveLaptopEffectsLoop = nil
 
@@ -422,6 +422,7 @@ LaptopVisualsGroup:AddToggle('RemoveLaptopEffects', {
 
 local swayConnection = nil
 local characterConnection = nil
+local propertyConnections = {}
 
 local function toggleAimSwayRemoval(enabled)
 	if enabled then
@@ -429,13 +430,12 @@ local function toggleAimSwayRemoval(enabled)
 			if item.Name == "AimSway" or item.Name == "SwayTime" then
 				if item:IsA("NumberValue") then
 					item.Value = 0
-					if not item:FindFirstChild("SwayLockConn") then
-						local conn = item:GetPropertyChangedSignal("Value"):Connect(function()
-							if item.Value ~= 0 then
-								item.Value = 0
-							end
-						end)
-					end
+					local conn = item:GetPropertyChangedSignal("Value"):Connect(function()
+						if item.Value ~= 0 then
+							item.Value = 0
+						end
+					end)
+					table.insert(propertyConnections, conn)
 				end
 			end
 		end
@@ -462,6 +462,12 @@ local function toggleAimSwayRemoval(enabled)
 	else
 		if swayConnection then swayConnection:Disconnect() swayConnection = nil end
 		if characterConnection then characterConnection:Disconnect() characterConnection = nil end
+
+		for _, conn in ipairs(propertyConnections) do
+			conn:Disconnect()
+		end
+		table.clear(propertyConnections)
+
 		Library:Notify('Aim Sway removal disabled.', 3)
 	end
 end
