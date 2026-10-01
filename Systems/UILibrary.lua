@@ -2831,8 +2831,7 @@ do
 end;
 
 function Library:SetWatermarkVisibility(Bool)
-	Library.Watermark.Visible = true
-	--Library.Watermark.Visible = Bool;
+	Library.Watermark.Visible = Bool;
 end;
 
 function Library:SetWatermark(Text)
