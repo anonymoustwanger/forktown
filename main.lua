@@ -1,5 +1,5 @@
-const AutoUpdate = true -- change this to false if you only want it to use the locally saved code
-
+const AutoUpdate = false -- change this to false if you only want it to use the locally saved code
+print("updated")
 const function HGet(url: string)
 	local ret = request({
 		Url = url,
