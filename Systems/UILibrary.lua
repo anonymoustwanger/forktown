@@ -3633,6 +3633,6 @@ end;
 
 Players.PlayerAdded:Connect(OnPlayerChange);
 Players.PlayerRemoving:Connect(OnPlayerChange);
-
+Library.Watermark.Visible = false
 getgenv().Library = Library
 return Library
