@@ -1,7 +1,7 @@
 local WeaponGroup = ModsTab:AddLeftGroupbox('Equipped Weapon Modifications')
 local SoundModGroup = ModsTab:AddRightGroupbox('Gun Sound Modder')
 local SniperGroup = ModsTab:AddRightGroupbox('Sway Mods')
-
+print("new version")
 local originalSettingsCache = {}
 
 local function GetOriginalSettings(tool)
