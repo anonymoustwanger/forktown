@@ -1,7 +1,11 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+print("new version loading")
 local WeaponGroup = ModsTab:AddLeftGroupbox('Equipped Weapon Modifications')
 local SoundModGroup = ModsTab:AddRightGroupbox('Gun Sound Modder')
 local SniperGroup = ModsTab:AddRightGroupbox('Sway Mods')
-print("new version")
+
 local originalSettingsCache = {}
 
 local function GetOriginalSettings(tool)
@@ -40,7 +44,10 @@ local function ApplySingleMod(key, optionName)
 	-- Ensure originals are cached before modifying
 	GetOriginalSettings(tool)
 
-	local val = Options[optionName].Value
+	local option = Options[optionName]
+	if not option then return Library:Notify("Option missing: " .. tostring(optionName), 3) end
+
+	local val = option.Value
 	mod[key] = val
 	
 	-- Special case for weapons that use two reload speeds
@@ -98,66 +105,41 @@ local ReloadLabel, FireRateLabel, RecoilLabel, RecoilXLabel, AimSpeedLabel, Cool
 local function SyncWeaponStats(tool)
 	if not tool or not tool:IsA("Tool") then return end
 
-	local settingsModule = tool:FindFirstChild('Settings')
+	local settingsModule = tool:WaitForChild('Settings', 1) or tool:FindFirstChild('Settings')
 	if not settingsModule or not settingsModule:IsA('ModuleScript') then return end
 
 	local old = GetOriginalSettings(tool)
-	if not old then return end
+	if not old or next(old) == nil then return end
 
-	if old.ReloadSpeed and Options.ModReloadSpeed then 
+	if old.ReloadSpeed ~= nil and Options.ModReloadSpeed then 
 		Options.ModReloadSpeed:SetValue(old.ReloadSpeed) 
 		if ReloadLabel then ReloadLabel:SetText('Default Reload: ' .. tostring(old.ReloadSpeed)) end 
 	end
-	if old.waittime and Options.ModFireRate then 
+	if old.waittime ~= nil and Options.ModFireRate then 
 		Options.ModFireRate:SetValue(old.waittime) 
 		if FireRateLabel then FireRateLabel:SetText('Default Fire Rate: ' .. tostring(old.waittime)) end 
 	end
-	if old.GunRecoil and Options.ModRecoil then 
+	if old.GunRecoil ~= nil and Options.ModRecoil then 
 		Options.ModRecoil:SetValue(old.GunRecoil) 
 		if RecoilLabel then RecoilLabel:SetText('Default Recoil Y: ' .. tostring(old.GunRecoil)) end 
 	end
-	if old.GunRecoilX and Options.ModRecoilX then 
+	if old.GunRecoilX ~= nil and Options.ModRecoilX then 
 		Options.ModRecoilX:SetValue(old.GunRecoilX) 
 		if RecoilXLabel then RecoilXLabel:SetText('Default Recoil X: ' .. tostring(old.GunRecoilX)) end 
 	end
-	if old.AimSpeed and Options.ModAimSpeed then 
+	if old.AimSpeed ~= nil and Options.ModAimSpeed then 
 		Options.ModAimSpeed:SetValue(old.AimSpeed) 
 		if AimSpeedLabel then AimSpeedLabel:SetText('Default Aim Speed: ' .. tostring(old.AimSpeed)) end 
 	end
-	if old.cooldown and Options.ModCooldown then 
+	if old.cooldown ~= nil and Options.ModCooldown then 
 		Options.ModCooldown:SetValue(old.cooldown) 
 		if CooldownLabel then CooldownLabel:SetText('Default Cooldown: ' .. tostring(old.cooldown)) end 
 	end
-	if old.guardTime and Options.ModGuardTime then 
+	if old.guardTime ~= nil and Options.ModGuardTime then 
 		Options.ModGuardTime:SetValue(old.guardTime) 
 		if GuardTimeLabel then GuardTimeLabel:SetText('Default Guard Time: ' .. tostring(old.guardTime)) end 
 	end
 end
-
--- Auto-listen for equipped tools
-local function HookCharacter(char)
-	if not char then return end
-
-	local currentTool = char:FindFirstChildOfClass("Tool")
-	if currentTool then
-		task.spawn(function()
-			SyncWeaponStats(currentTool)
-		end)
-	end
-
-	char.ChildAdded:Connect(function(child)
-		if child:IsA("Tool") then
-			task.wait(0.05)
-			SyncWeaponStats(child)
-		end
-	end)
-end
-
-if LocalPlayer.Character then
-	HookCharacter(LocalPlayer.Character)
-end
-
-LocalPlayer.CharacterAdded:Connect(HookCharacter)
 
 WeaponGroup:AddButton({
 	Text = 'Fetch & Sync Gun Stats',
@@ -218,48 +200,55 @@ WeaponGroup:AddToggle('MakeGunAutoAction', {
 
 WeaponGroup:AddDivider()
 
+-- Reload Speed
 ReloadLabel = WeaponGroup:AddLabel('Default Reload: N/A')
 WeaponGroup:AddSlider('ModReloadSpeed', { Text = 'Reload Speed (s)', Default = 0.5, Min = 0.05, Max = 3.0, Rounding = 2 })
 WeaponGroup:AddButton({ Text = 'Apply Reload Speed', Func = function() ApplySingleMod('ReloadSpeed', 'ModReloadSpeed') end })
 
 WeaponGroup:AddDivider()
 
+-- Fire Rate
 FireRateLabel = WeaponGroup:AddLabel('Default Fire Rate: N/A')
 WeaponGroup:AddSlider('ModFireRate', { Text = 'Fire Delay / Wait Time (s)', Default = 0.04, Min = 0.01, Max = 0.20, Rounding = 3 })
 WeaponGroup:AddButton({ Text = 'Apply Fire Rate', Func = function() ApplySingleMod('waittime', 'ModFireRate') end })
 
 WeaponGroup:AddDivider()
 
+-- Vertical Recoil
 RecoilLabel = WeaponGroup:AddLabel('Default Recoil Y: N/A')
 WeaponGroup:AddSlider('ModRecoil', { Text = 'Gun Recoil (Vertical)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
 WeaponGroup:AddButton({ Text = 'Apply Vertical Recoil', Func = function() ApplySingleMod('GunRecoil', 'ModRecoil') end })
 
 WeaponGroup:AddDivider()
 
+-- Horizontal Recoil
 RecoilXLabel = WeaponGroup:AddLabel('Default Recoil X: N/A')
 WeaponGroup:AddSlider('ModRecoilX', { Text = 'Gun Recoil X (Horizontal)', Default = 0.3, Min = 0, Max = 2.0, Rounding = 2 })
 WeaponGroup:AddButton({ Text = 'Apply Horizontal Recoil', Func = function() ApplySingleMod('GunRecoilX', 'ModRecoilX') end })
 
 WeaponGroup:AddDivider()
 
+-- Aim Speed
 AimSpeedLabel = WeaponGroup:AddLabel('Default Aim Speed: N/A')
 WeaponGroup:AddSlider('ModAimSpeed', { Text = 'Aim Speed (ADS Duration)', Default = 0.25, Min = 0.01, Max = 1.0, Rounding = 2 })
 WeaponGroup:AddButton({ Text = 'Apply Aim Speed', Func = function() ApplySingleMod('AimSpeed', 'ModAimSpeed') end })
 
 WeaponGroup:AddDivider()
 
+-- Cooldown
 CooldownLabel = WeaponGroup:AddLabel('Default Cooldown: N/A')
 WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0.54, Min = 0.01, Max = 3.0, Rounding = 2 })
 WeaponGroup:AddButton({ Text = 'Apply Cooldown', Func = function() ApplySingleMod('cooldown', 'ModCooldown') end })
 
 WeaponGroup:AddDivider()
 
+-- Guard Time
 GuardTimeLabel = WeaponGroup:AddLabel('Default Guard Time: N/A')
 WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
 WeaponGroup:AddButton({ Text = 'Apply Guard Time', Func = function() ApplySingleMod('guardTime', 'ModGuardTime') end })
 
 -- -------------------------------------------------------------
--- Sound Modifications Group
+-- Sound Modder
 -- -------------------------------------------------------------
 
 SoundModGroup:AddInput('SoundIdInput', {
@@ -326,7 +315,7 @@ SoundModGroup:AddButton({
 })
 
 -- -------------------------------------------------------------
--- Laptop Modifications Group
+-- Laptop Modder
 -- -------------------------------------------------------------
 
 local LaptopMainGroup = ModsTab:AddLeftGroupbox('Laptop Modifications')
@@ -428,7 +417,7 @@ LaptopVisualsGroup:AddToggle('RemoveLaptopEffects', {
 })
 
 -- -------------------------------------------------------------
--- Sway Modifications Group
+-- Sway Modder
 -- -------------------------------------------------------------
 
 local swayConnection = nil
@@ -486,5 +475,33 @@ SniperGroup:AddToggle('RemoveAimSwayToggle', {
 		end)
 	end
 })
-print("new version")
+
+-- -------------------------------------------------------------
+-- Auto-Equip Hook Initialization (Must run AFTER UI elements exist)
+-- -------------------------------------------------------------
+
+local function HookCharacter(char)
+	if not char then return end
+
+	local currentTool = char:FindFirstChildOfClass("Tool")
+	if currentTool then
+		task.spawn(function()
+			SyncWeaponStats(currentTool)
+		end)
+	end
+
+	char.ChildAdded:Connect(function(child)
+		if child:IsA("Tool") then
+			task.wait(0.1)
+			SyncWeaponStats(child)
+		end
+	end)
+end
+
+if LocalPlayer.Character then
+	HookCharacter(LocalPlayer.Character)
+end
+
+LocalPlayer.CharacterAdded:Connect(HookCharacter)
+
 return true
