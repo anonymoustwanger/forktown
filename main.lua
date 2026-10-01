@@ -1,6 +1,4 @@
-const AutoUpdate = false -- change this to false if you only want it to use the locally saved code
-print("updated")
-const function HGet(url: string)
+local function HGet(url: string)
 	local ret = request({
 		Url = url,
 		Method = "GET",
@@ -12,20 +10,10 @@ const function HGet(url: string)
 	return ret.Body
 end
 
---[[if not isfolder("SkidWare") then
-	makefolder("SkidWare")
-end]]
+local BaseURL = "https://raw.githubusercontent.com/anonymoustwanger/forktown/refs/heads/main/"
+local Url = BaseURL .. "Core.lua"
 
-BaseURL = "https://raw.githubusercontent.com/anonymoustwanger/forktown/refs/heads/main/"
-const Url = BaseURL .. "Core.lua"
-const Path = "SkidWare/Core.lua"
-local Code = ""
+-- Fetch directly into memory without writing to disk
+local Code = HGet(Url)
 
-if AutoUpdate then
-	Code = HGet(Url)
-	writefile(Path, Code)
-else
-	Code = readfile(Path)
-end
-
-loadstring(Code, "Skidware-Main")(AutoUpdate)
+loadstring(Code, "Skidware-Main")(true)
