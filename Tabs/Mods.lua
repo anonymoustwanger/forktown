@@ -98,7 +98,7 @@ WeaponGroup:AddButton({
 })
 
 WeaponGroup:AddButton({
-	Text = 'Apply Modifications 01',
+	Text = 'mods 123',
 	Func = function()
 		xpcall(ApplyWeaponMod, function(err)
 			Library:Notify('Error: ' .. tostring(err), 3)
