@@ -132,6 +132,73 @@ WeaponGroup:AddSlider('ModCooldown', { Text = 'Attack Cooldown (s)', Default = 0
 WeaponGroup:AddSlider('ModGuardTime', { Text = 'Guard Time (s)', Default = 1.5, Min = 0.1, Max = 5.0, Rounding = 2 })
 WeaponGroup:AddSlider('ModRange', { Text = 'Range Multiplier', Default = 1.0, Min = 0.5, Max = 5.0, Rounding = 1 })
 
+WeaponGroup:AddDivider()
+
+-- Event-Based Auto Recoil Removal
+local AutoRecoilCharConn = nil
+local AutoRecoilEquipConn = nil
+
+local function RemoveToolRecoil(tool)
+	if not tool or not tool:IsA("Tool") then return end
+	local settingsModule = tool:FindFirstChild('Settings')
+	if settingsModule and settingsModule:IsA('ModuleScript') then
+		local success, mod = pcall(require, settingsModule)
+		if success and type(mod) == 'table' then
+			mod.GunRecoil = 0
+			mod.GunRecoilX = 0
+		end
+	end
+end
+
+local function SetupAutoRecoilEvents(character)
+	if AutoRecoilEquipConn then
+		AutoRecoilEquipConn:Disconnect()
+		AutoRecoilEquipConn = nil
+	end
+
+	if character then
+		local currentTool = character:FindFirstChildOfClass("Tool")
+		if currentTool then
+			RemoveToolRecoil(currentTool)
+		end
+
+		AutoRecoilEquipConn = character.ChildAdded:Connect(function(child)
+			if child:IsA("Tool") then
+				task.wait(0.1)
+				RemoveToolRecoil(child)
+			end
+		end)
+	end
+end
+
+WeaponGroup:AddToggle('AutoRemoveRecoil', {
+	Text = 'Auto Remove Recoil',
+	Default = false,
+	Callback = function(Value)
+		if Value then
+			if LocalPlayer.Character then
+				SetupAutoRecoilEvents(LocalPlayer.Character)
+			end
+			
+			AutoRecoilCharConn = LocalPlayer.CharacterAdded:Connect(function(newChar)
+				SetupAutoRecoilEvents(newChar)
+			end)
+			
+			Library:Notify('Event-based Auto Recoil activated!', 3)
+		else
+			if AutoRecoilCharConn then 
+				AutoRecoilCharConn:Disconnect() 
+				AutoRecoilCharConn = nil 
+			end
+			if AutoRecoilEquipConn then 
+				AutoRecoilEquipConn:Disconnect() 
+				AutoRecoilEquipConn = nil 
+			end
+			Library:Notify('Auto Recoil deactivated.', 3)
+		end
+	end
+})
+
 SoundModGroup:AddInput('SoundIdInput', {
 	Default = 'rbxassetid://0',
 	Numeric = false,
